@@ -35,3 +35,9 @@ export const subscribeToNotifications = (cb: (data: any) => void) => {
     socket.on('newNotification', cb)
     return () => socket?.off('newNotification', cb)
 }
+
+export const subscribeToEvent = (event: string, cb: (data: any) => void) => {
+    if (!socket) return null
+    socket.on(event, cb)
+    return () => socket?.off(event, cb)
+}

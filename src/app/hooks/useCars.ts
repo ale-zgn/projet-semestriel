@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { carsAPI, Car } from '../../services/api'
 import { toast } from 'sonner'
+import { subscribeToEvent } from '../../services/socket'
 
 export function useCars() {
     const [cars, setCars] = useState<Car[]>([])
@@ -27,6 +28,16 @@ export function useCars() {
 
     useEffect(() => {
         fetchCars()
+    }, [fetchCars])
+
+    useEffect(() => {
+        const unsubscribe = subscribeToEvent('carsUpdated', () => {
+            console.log('Real-time update: Cars data changed, refreshing...')
+            fetchCars()
+        })
+        return () => {
+            if (unsubscribe) unsubscribe()
+        }
     }, [fetchCars])
 
     const addCar = async (carData: Omit<Car, '_id' | 'createdAt' | 'updatedAt'>) => {

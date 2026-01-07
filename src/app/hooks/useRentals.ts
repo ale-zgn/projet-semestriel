@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { rentalsAPI, RentalRequest } from '../../services/api'
 import { toast } from 'sonner'
+import { subscribeToEvent } from '../../services/socket'
 
 export function useRentals() {
     const [rentals, setRentals] = useState<RentalRequest[]>([])
@@ -27,6 +28,16 @@ export function useRentals() {
 
     useEffect(() => {
         fetchRentals()
+    }, [fetchRentals])
+
+    useEffect(() => {
+        const unsubscribe = subscribeToEvent('rentalsUpdated', () => {
+            console.log('Real-time update: Rentals data changed, refreshing...')
+            fetchRentals()
+        })
+        return () => {
+            if (unsubscribe) unsubscribe()
+        }
     }, [fetchRentals])
 
     const addRental = async (rentalData: Omit<RentalRequest, '_id' | 'createdAt' | 'updatedAt' | 'status'>) => {

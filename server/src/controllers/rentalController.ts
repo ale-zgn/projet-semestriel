@@ -3,7 +3,7 @@ import { validationResult } from 'express-validator'
 import { RentalRequest } from '../models/RentalRequest'
 import { Notification } from '../models/Notification'
 import { User } from '../models/User'
-import { emitToUser } from '../utils/socket'
+import { emitToUser, emitToAll } from '../utils/socket'
 
 export const getRentals = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -92,6 +92,9 @@ export const createRental = async (req: Request, res: Response, next: NextFuncti
             console.error('Failed to create admin notifications:', notifError)
         }
 
+        // Broadcast refresh signal for all clients
+        emitToAll('rentalsUpdated', { action: 'create', rental })
+
         res.status(201).json({
             success: true,
             message: 'Rental request created successfully',
@@ -179,6 +182,9 @@ export const updateRental = async (req: Request, res: Response, next: NextFuncti
             }
         }
 
+        // Broadcast refresh signal
+        emitToAll('rentalsUpdated', { action: 'update', rental })
+
         res.status(200).json({
             success: true,
             message: 'Rental request updated successfully',
@@ -219,6 +225,9 @@ export const deleteRental = async (req: Request, res: Response, next: NextFuncti
             message: 'Rental request deleted successfully',
             data: { rental },
         })
+
+        // Broadcast refresh signal
+        emitToAll('rentalsUpdated', { action: 'delete', rentalId: id })
     } catch (error) {
         next(error)
     }

@@ -118,7 +118,7 @@ export function NotificationPopover({ onNavigate }: NotificationPopoverProps) {
                     )}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className='w-80 p-0 dark border-border bg-card' align='end'>
+            <PopoverContent className='w-80 p-0 border-border bg-card' align='end'>
                 <div className='flex items-center justify-between p-4 border-b'>
                     <h4 className='font-semibold'>Notifications</h4>
                     <div className='flex items-center gap-2'>

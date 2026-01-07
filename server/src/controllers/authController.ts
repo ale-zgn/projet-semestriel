@@ -3,7 +3,7 @@ import { validationResult } from 'express-validator'
 import { User } from '../models/User'
 import { Notification } from '../models/Notification'
 import { generateToken } from '../utils/jwt'
-import { emitToUser } from '../utils/socket'
+import { emitToUser, emitToAll } from '../utils/socket'
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -63,6 +63,9 @@ export const register = async (req: Request, res: Response, next: NextFunction):
         } catch (notifError) {
             console.error('Failed to create admin registration notifications:', notifError)
         }
+
+        // Broadcast refresh signal for admins
+        emitToAll('usersUpdated', { action: 'register', user: { id: user._id, username: user.username } })
 
         res.status(201).json({
             success: true,

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import { validationResult } from 'express-validator'
 import { Car } from '../models/Car'
 import { RentalRequest } from '../models/RentalRequest'
+import { emitToAll } from '../utils/socket'
 
 export const getCars = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -70,6 +71,9 @@ export const createCar = async (req: Request, res: Response, next: NextFunction)
 
         const car = await Car.create(req.body)
 
+        // Socket emission
+        emitToAll('carsUpdated', { action: 'create', car })
+
         res.status(201).json({
             success: true,
             message: 'Car created successfully',
@@ -115,6 +119,9 @@ export const updateCar = async (req: Request, res: Response, next: NextFunction)
             message: 'Car updated successfully',
             data: { car },
         })
+
+        // Socket emission
+        emitToAll('carsUpdated', { action: 'update', car })
     } catch (error) {
         next(error)
     }
@@ -153,6 +160,9 @@ export const deleteCar = async (req: Request, res: Response, next: NextFunction)
             message: 'Car deleted successfully',
             data: { car },
         })
+
+        // Socket emission
+        emitToAll('carsUpdated', { action: 'delete', carId: id })
     } catch (error) {
         next(error)
     }

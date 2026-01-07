@@ -5,7 +5,6 @@ import { NotificationPopover } from './NotificationPopover'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
 import { Button } from './ui/button'
 import { LogOut, User as UserIcon } from 'lucide-react'
-import { Toaster } from 'sonner'
 import { useCars } from '../hooks/useCars'
 import { useRentals } from '../hooks/useRentals'
 import { useUsers } from '../hooks/useUsers'
@@ -58,8 +57,7 @@ export function Dashboard({ user, logout }: DashboardProps) {
     }
 
     return (
-        <div className='min-h-screen bg-background dark'>
-            <Toaster position='top-right' />
+        <div className='min-h-screen bg-background'>
             <header className='border-b border-border bg-card'>
                 <div className='container mx-auto px-4 py-4 flex items-center justify-between'>
                     <div>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { User, usersAPI } from '../../services/api'
 import { toast } from 'sonner'
+import { subscribeToEvent } from '../../services/socket'
 
 export function useUsers(enabled: boolean = true) {
     const [users, setUsers] = useState<User[]>([])
@@ -28,6 +29,17 @@ export function useUsers(enabled: boolean = true) {
             fetchUsers()
         } else {
             setIsLoading(false)
+        }
+    }, [fetchUsers, enabled])
+
+    useEffect(() => {
+        if (!enabled) return
+        const unsubscribe = subscribeToEvent('usersUpdated', () => {
+            console.log('Real-time update: User data changed, refreshing...')
+            fetchUsers()
+        })
+        return () => {
+            if (unsubscribe) unsubscribe()
         }
     }, [fetchUsers, enabled])
 
