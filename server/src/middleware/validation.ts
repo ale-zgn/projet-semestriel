@@ -43,9 +43,6 @@ export const updateCarValidation: ValidationChain[] = [
 
 // Rental validation
 export const createRentalValidation: ValidationChain[] = [
-    body('customerName').trim().notEmpty().withMessage('Customer name is required'),
-    body('customerEmail').isEmail().withMessage('Please provide a valid email').normalizeEmail(),
-    body('customerPhone').trim().notEmpty().withMessage('Customer phone is required'),
     body('carId').isMongoId().withMessage('Invalid car ID'),
     body('startDate').isISO8601().withMessage('Invalid start date'),
     body('endDate').isISO8601().withMessage('Invalid end date'),

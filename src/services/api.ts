@@ -43,6 +43,7 @@ export interface User {
     id: string
     username: string
     email: string
+    phone?: string
     role: 'admin' | 'user'
     rentalCount?: number
 }
@@ -63,9 +64,7 @@ export interface Car {
 
 export interface RentalRequest {
     _id: string
-    customerName: string
-    customerEmail: string
-    customerPhone: string
+    userId: User | string
     carId: Car | string
     startDate: string
     endDate: string

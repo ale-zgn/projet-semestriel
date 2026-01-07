@@ -1,9 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface IRentalRequest extends Document {
-    customerName: string
-    customerEmail: string
-    customerPhone: string
+    userId: mongoose.Types.ObjectId
     carId: mongoose.Types.ObjectId
     startDate: Date
     endDate: Date
@@ -16,22 +14,10 @@ export interface IRentalRequest extends Document {
 
 const rentalRequestSchema = new Schema<IRentalRequest>(
     {
-        customerName: {
-            type: String,
-            required: [true, 'Customer name is required'],
-            trim: true,
-        },
-        customerEmail: {
-            type: String,
-            required: [true, 'Customer email is required'],
-            trim: true,
-            lowercase: true,
-            match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email'],
-        },
-        customerPhone: {
-            type: String,
-            required: [true, 'Customer phone is required'],
-            trim: true,
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: [true, 'User ID is required'],
         },
         carId: {
             type: Schema.Types.ObjectId,
@@ -68,6 +54,7 @@ const rentalRequestSchema = new Schema<IRentalRequest>(
 
 // Indexes for efficient queries
 rentalRequestSchema.index({ carId: 1 })
+rentalRequestSchema.index({ userId: 1 })
 rentalRequestSchema.index({ status: 1 })
 rentalRequestSchema.index({ startDate: 1, endDate: 1 })
 

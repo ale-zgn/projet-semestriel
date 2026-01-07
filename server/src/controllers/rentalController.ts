@@ -14,12 +14,12 @@ export const getRentals = async (req: Request, res: Response, next: NextFunction
         const filter: any = {}
         if (status) filter.status = status
 
-        // If user is not admin, only show their rentals (by email)
+        // If user is not admin, only show their rentals (by userId if available, or by email)
         if (user && user.role !== 'admin') {
-            filter.customerEmail = user.email
+            filter.$or = [{ userId: user.userId }, { customerEmail: user.email }]
         }
 
-        const rentals = await RentalRequest.find(filter).populate('carId').sort({ createdAt: -1 })
+        const rentals = await RentalRequest.find(filter).populate('carId').populate('userId', 'username email phone').sort({ createdAt: -1 })
 
         res.status(200).json({
             success: true,
@@ -70,14 +70,21 @@ export const createRental = async (req: Request, res: Response, next: NextFuncti
             })
             return
         }
-        const rental = await RentalRequest.create(req.body)
-        await rental.populate('carId')
+
+        const rentalData = { ...req.body }
+        if (req.user) {
+            rentalData.userId = req.user.userId
+        }
+
+        const rental = await RentalRequest.create(rentalData)
+        await rental.populate(['carId', 'userId'])
 
         // Notify admins
         try {
             const admins = await User.find({ role: 'admin' })
+            const customerName = (rental.userId as any)?.username || 'Unknown Customer'
             const notifications = admins.map((admin) => ({
-                title: `New rental request from ${rental.customerName}`,
+                title: `New rental request from ${customerName}`,
                 location: 'RentalRequest',
                 locationId: rental._id,
                 userId: admin._id,
@@ -153,7 +160,7 @@ export const updateRental = async (req: Request, res: Response, next: NextFuncti
         const rental = await RentalRequest.findByIdAndUpdate(id, req.body, {
             new: true,
             runValidators: true,
-        }).populate('carId')
+        }).populate(['carId', 'userId'])
 
         if (!rental) {
             res.status(404).json({
@@ -166,8 +173,10 @@ export const updateRental = async (req: Request, res: Response, next: NextFuncti
         // Notify user if status changed
         if (req.body.status) {
             try {
-                const userToNotify = await User.findOne({ email: rental.customerEmail })
-                if (userToNotify) {
+                // Find user to notify
+                const userToNotify = rental.userId as any
+
+                if (userToNotify && userToNotify._id) {
                     const notification = await Notification.create({
                         title: `Your rental request status has been updated to ${rental.status}`,
                         location: 'RentalRequest',

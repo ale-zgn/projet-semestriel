@@ -48,10 +48,11 @@ export function RentalRequestsTab({ rentals, cars, onAddRental, onUpdateRental, 
     const filteredRentals = rentals.filter((rental) => {
         const car = typeof rental.carId === 'object' ? rental.carId : cars.find((c) => c._id === rental.carId)
         const carName = car ? `${car.make} ${car.carModel}` : ''
+        const customer = typeof rental.userId === 'object' ? rental.userId : null
 
         const matchesSearch =
-            rental.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            rental.customerEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (customer?.username.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+            (customer?.email.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
             carName.toLowerCase().includes(searchQuery.toLowerCase())
         const matchesStatus = statusFilter === 'all' || rental.status === statusFilter
         return matchesSearch && matchesStatus
@@ -159,7 +160,7 @@ export function RentalRequestsTab({ rentals, cars, onAddRental, onUpdateRental, 
                             <CardHeader className='pb-3'>
                                 <div className='flex items-start justify-between'>
                                     <div className='space-y-1'>
-                                        <CardTitle>{rental.customerName}</CardTitle>
+                                        <CardTitle>{typeof rental.userId === 'object' ? rental.userId.username : 'Unknown User'}</CardTitle>
                                         <CardDescription>{car ? `${car.make} ${car.carModel}` : 'Unknown Car'}</CardDescription>
                                     </div>
                                     {isAdmin && (
@@ -182,11 +183,11 @@ export function RentalRequestsTab({ rentals, cars, onAddRental, onUpdateRental, 
                             <CardContent className='space-y-3'>
                                 <div className='flex items-center gap-2 text-muted-foreground'>
                                     <Mail className='size-4' />
-                                    <span className='truncate'>{rental.customerEmail}</span>
+                                    <span className='truncate'>{typeof rental.userId === 'object' ? rental.userId.email : 'No email'}</span>
                                 </div>
                                 <div className='flex items-center gap-2 text-muted-foreground'>
                                     <Phone className='size-4' />
-                                    <span>{rental.customerPhone}</span>
+                                    <span>{typeof rental.userId === 'object' ? rental.userId.phone || 'No phone' : 'No phone'}</span>
                                 </div>
                                 <div className='flex items-center gap-2 text-muted-foreground'>
                                     <Calendar className='size-4' />

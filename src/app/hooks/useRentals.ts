@@ -46,7 +46,7 @@ export function useRentals() {
 
             if (response.success && response.data) {
                 setRentals((prev) => [...prev, response.data!.rental])
-                toast.success(`Rental request for ${rentalData.customerName} created successfully!`)
+                toast.success('Rental request created successfully!')
                 return true
             }
             return false
