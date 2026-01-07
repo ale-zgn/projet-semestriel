@@ -82,12 +82,12 @@ export const createRental = async (req: Request, res: Response, next: NextFuncti
                 locationId: rental._id,
                 userId: admin._id,
             }))
-            await Notification.insertMany(notifications)
+            const savedNotifications = await Notification.insertMany(notifications)
 
             // Emit to each admin
-            notifications.forEach((notif) => {
+            savedNotifications.forEach((notif) => {
                 const targetId = notif.userId.toString()
-                console.log(`📡 Notifying admin room: ${targetId} of new rental ${rental._id}`)
+                console.log(`📡 Notifying admin room: ${targetId} of new rental ${rental._id} (Notif ID: ${notif._id})`)
                 emitToUser(targetId, 'newNotification', notif)
             })
         } catch (notifError) {
@@ -232,7 +232,8 @@ export const deleteRental = async (req: Request, res: Response, next: NextFuncti
             data: { rental },
         })
 
-        // Broadcast refresh signal
+        // Broadcast refresh signal for all clients
+        console.log(`📢 Broadcasting rentalsUpdated to all: delete ${id}`)
         emitToAll('rentalsUpdated', { action: 'delete', rentalId: id })
     } catch (error) {
         next(error)

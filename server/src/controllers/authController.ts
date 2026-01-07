@@ -54,11 +54,13 @@ export const register = async (req: Request, res: Response, next: NextFunction):
                 locationId: user._id,
                 userId: admin._id,
             }))
-            await Notification.insertMany(notifications)
+            const savedNotifications = await Notification.insertMany(notifications)
 
             // Emit to each admin
-            notifications.forEach((notif) => {
-                emitToUser(notif.userId.toString(), 'newNotification', notif)
+            savedNotifications.forEach((notif) => {
+                const targetId = notif.userId.toString()
+                console.log(`📡 Notifying admin room: ${targetId} of new user ${user.username} (Notif ID: ${notif._id})`)
+                emitToUser(targetId, 'newNotification', notif)
             })
         } catch (notifError) {
             console.error('Failed to create admin registration notifications:', notifError)

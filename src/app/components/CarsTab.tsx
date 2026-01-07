@@ -46,6 +46,14 @@ export function CarsTab({ cars, onAddCar, onUpdateCar, onDeleteCar, isLoading, i
         return matchesSearch && matchesStatus
     })
 
+    console.log('🏎️ CarsTab Render:', {
+        carsCount: cars.length,
+        filteredCount: filteredCars.length,
+        search: searchQuery,
+        status: statusFilter,
+        isAdmin,
+    })
+
     const handleSave = async (carData: any) => {
         if (carData._id) {
             await onUpdateCar(carData)
