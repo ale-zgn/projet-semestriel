@@ -53,12 +53,18 @@ export const getIO = () => {
 
 export const emitToUser = (userId: string, event: string, data: any) => {
     if (io) {
+        console.log(`📡 Emitting ${event} to user ${userId}`)
         io.to(userId).emit(event, data)
+    } else {
+        console.warn(`⚠️ Cannot emit ${event} to user ${userId}: Socket.io not initialized`)
     }
 }
 
 export const emitToAll = (event: string, data: any) => {
     if (io) {
+        console.log(`📢 Broadcasting ${event} to all connected clients`)
         io.emit(event, data)
+    } else {
+        console.warn(`⚠️ Cannot broadcast ${event}: Socket.io not initialized`)
     }
 }

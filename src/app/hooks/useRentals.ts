@@ -31,8 +31,8 @@ export function useRentals() {
     }, [fetchRentals])
 
     useEffect(() => {
-        const unsubscribe = subscribeToEvent('rentalsUpdated', () => {
-            console.log('Real-time update: Rentals data changed, refreshing...')
+        const unsubscribe = subscribeToEvent('rentalsUpdated', (data) => {
+            console.log('📋 useRentals hook received rentalsUpdated event:', data)
             fetchRentals()
         })
         return () => {

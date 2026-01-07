@@ -43,7 +43,9 @@ export function NotificationPopover({ onNavigate }: NotificationPopoverProps) {
     }, [open, fetchNotifications])
 
     useEffect(() => {
+        console.log('Subscribing to notifications')
         const unsubscribe = subscribeToNotifications((newNotif: Notification) => {
+            console.log('New notification received:', newNotif)
             setNotifications((prev) => {
                 // Prevent duplicates
                 if (prev.find((n) => n._id === newNotif._id)) return prev

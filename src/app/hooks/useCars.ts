@@ -31,8 +31,8 @@ export function useCars() {
     }, [fetchCars])
 
     useEffect(() => {
-        const unsubscribe = subscribeToEvent('carsUpdated', () => {
-            console.log('Real-time update: Cars data changed, refreshing...')
+        const unsubscribe = subscribeToEvent('carsUpdated', (data) => {
+            console.log('🏎️ useCars hook received carsUpdated event:', data)
             fetchCars()
         })
         return () => {
