@@ -110,6 +110,7 @@ export function Dashboard({ user, logout }: DashboardProps) {
                             onDeleteRental={handleDeleteRental}
                             isLoading={rentalsLoading}
                             isAdmin={user?.role === 'admin'}
+                            user={user}
                         />
                     </TabsContent>
 

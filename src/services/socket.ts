@@ -1,14 +1,25 @@
 import { io, Socket } from 'socket.io-client'
 
 // @ts-ignore
-const SOCKET_URL = import.meta.env?.VITE_API_URL || 'http://localhost:4800'
+const API_URL = import.meta.env?.VITE_API_URL || 'http://localhost:4800/api'
+const SOCKET_URL = API_URL.replace('/api', '')
 
 let socket: Socket | null = null
 
 export const initiateSocketConnection = (userId: string) => {
     socket = io(SOCKET_URL)
-    console.log(`Connecting socket...`)
-    if (socket && userId) socket.emit('join', userId)
+    console.log(`Socket connecting to ${SOCKET_URL} for user ${userId}...`)
+
+    if (socket) {
+        socket.on('connect', () => {
+            console.log('Socket connected successfully:', socket?.id)
+            if (userId) socket?.emit('join', userId)
+        })
+
+        socket.on('connect_error', (error) => {
+            console.error('Socket connection error:', error)
+        })
+    }
 }
 
 export const disconnectSocket = () => {

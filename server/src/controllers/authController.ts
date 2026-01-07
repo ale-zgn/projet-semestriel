@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
 import { validationResult } from 'express-validator'
 import { User } from '../models/User'
+import { Notification } from '../models/Notification'
 import { generateToken } from '../utils/jwt'
+import { emitToUser } from '../utils/socket'
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -42,6 +44,25 @@ export const register = async (req: Request, res: Response, next: NextFunction):
             email: user.email,
             role: user.role,
         })
+
+        // Notify admins
+        try {
+            const admins = await User.find({ role: 'admin' })
+            const notifications = admins.map((admin) => ({
+                title: `New user registered: ${user.username}`,
+                location: 'User',
+                locationId: user._id,
+                userId: admin._id,
+            }))
+            await Notification.insertMany(notifications)
+
+            // Emit to each admin
+            notifications.forEach((notif) => {
+                emitToUser(notif.userId.toString(), 'newNotification', notif)
+            })
+        } catch (notifError) {
+            console.error('Failed to create admin registration notifications:', notifError)
+        }
 
         res.status(201).json({
             success: true,

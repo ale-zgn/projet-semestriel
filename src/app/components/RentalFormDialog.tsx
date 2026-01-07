@@ -5,7 +5,7 @@ import { Label } from './ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Textarea } from './ui/textarea'
-import { RentalRequest } from '../../services/api'
+import { RentalRequest, User as UserType } from '../../services/api'
 import { toast } from 'sonner'
 
 interface RentalFormDialogProps {
@@ -15,9 +15,10 @@ interface RentalFormDialogProps {
     onSave: (rental: any) => void
     availableCars: { id: string; label: string; dailyRate: number }[]
     isAdmin: boolean
+    user: UserType | null
 }
 
-export function RentalFormDialog({ open, onOpenChange, rental, onSave, availableCars, isAdmin }: RentalFormDialogProps) {
+export function RentalFormDialog({ open, onOpenChange, rental, onSave, availableCars, isAdmin, user }: RentalFormDialogProps) {
     const [formData, setFormData] = useState<Partial<RentalRequest>>({
         customerName: '',
         customerEmail: '',
@@ -45,8 +46,8 @@ export function RentalFormDialog({ open, onOpenChange, rental, onSave, available
             })
         } else {
             setFormData({
-                customerName: '',
-                customerEmail: '',
+                customerName: !isAdmin && user ? user.username : '',
+                customerEmail: !isAdmin && user ? user.email : '',
                 customerPhone: '',
                 carId: '',
                 startDate: '',
@@ -56,7 +57,7 @@ export function RentalFormDialog({ open, onOpenChange, rental, onSave, available
                 totalCost: 0,
             })
         }
-    }, [rental, open])
+    }, [rental, open, isAdmin, user])
 
     // Auto-calculate total cost when dates or car changes
     useEffect(() => {
@@ -118,6 +119,7 @@ export function RentalFormDialog({ open, onOpenChange, rental, onSave, available
                                     value={formData.customerName}
                                     onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
                                     required
+                                    disabled={!isAdmin}
                                 />
                             </div>
                             <div className='grid gap-2'>
@@ -128,6 +130,7 @@ export function RentalFormDialog({ open, onOpenChange, rental, onSave, available
                                     value={formData.customerEmail}
                                     onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
                                     required
+                                    disabled={!isAdmin}
                                 />
                             </div>
                         </div>

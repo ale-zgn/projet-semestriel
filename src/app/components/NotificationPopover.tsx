@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Bell, Trash2, Loader2, CarFront, CalendarClock, History } from 'lucide-react'
+import { Bell, Trash2, Loader2, CarFront, CalendarClock, History, Users } from 'lucide-react'
 import { Button } from './ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { Badge } from './ui/badge'
@@ -85,6 +85,11 @@ export function NotificationPopover({ onNavigate }: NotificationPopoverProps) {
                 onNavigate('rentals')
             }
             setOpen(false)
+        } else if (notification.location === 'User') {
+            if (onNavigate) {
+                onNavigate('users')
+            }
+            setOpen(false)
         }
     }
 
@@ -94,6 +99,8 @@ export function NotificationPopover({ onNavigate }: NotificationPopoverProps) {
                 return <CalendarClock className='h-4 w-4 text-blue-500' />
             case 'Car':
                 return <CarFront className='h-4 w-4 text-green-500' />
+            case 'User':
+                return <Users className='h-4 w-4 text-purple-500' />
             default:
                 return <History className='h-4 w-4 text-muted-foreground' />
         }

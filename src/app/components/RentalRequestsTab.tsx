@@ -17,7 +17,7 @@ import {
 } from './ui/alert-dialog'
 import { RentalFormDialog } from './RentalFormDialog'
 import { Plus, MoreVertical, Search, Filter, Calendar, User, Mail, Phone, Loader2 } from 'lucide-react'
-import { RentalRequest, Car } from '../../services/api'
+import { RentalRequest, Car, User as UserType } from '../../services/api'
 
 interface RentalRequestsTabProps {
     rentals: RentalRequest[]
@@ -27,9 +27,10 @@ interface RentalRequestsTabProps {
     onDeleteRental: (id: string) => Promise<void>
     isLoading: boolean
     isAdmin: boolean
+    user: UserType | null
 }
 
-export function RentalRequestsTab({ rentals, cars, onAddRental, onUpdateRental, onDeleteRental, isLoading, isAdmin }: RentalRequestsTabProps) {
+export function RentalRequestsTab({ rentals, cars, onAddRental, onUpdateRental, onDeleteRental, isLoading, isAdmin, user }: RentalRequestsTabProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [editingRental, setEditingRental] = useState<RentalRequest | undefined>()
     const [deleteRentalId, setDeleteRentalId] = useState<string | null>(null)
@@ -225,6 +226,7 @@ export function RentalRequestsTab({ rentals, cars, onAddRental, onUpdateRental, 
                 onSave={handleSave}
                 availableCars={availableCars}
                 isAdmin={isAdmin}
+                user={user}
             />
 
             <AlertDialog open={deleteRentalId !== null} onOpenChange={() => setDeleteRentalId(null)}>
