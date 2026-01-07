@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
 import { validationResult } from 'express-validator'
 import { RentalRequest } from '../models/RentalRequest'
+import { Notification } from '../models/Notification'
+import { User } from '../models/User'
+import { emitToUser } from '../utils/socket'
 
 export const getRentals = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -70,6 +73,25 @@ export const createRental = async (req: Request, res: Response, next: NextFuncti
         const rental = await RentalRequest.create(req.body)
         await rental.populate('carId')
 
+        // Notify admins
+        try {
+            const admins = await User.find({ role: 'admin' })
+            const notifications = admins.map((admin) => ({
+                title: `New rental request from ${rental.customerName}`,
+                location: 'RentalRequest',
+                locationId: rental._id,
+                userId: admin._id,
+            }))
+            await Notification.insertMany(notifications)
+
+            // Emit to each admin
+            notifications.forEach((notif) => {
+                emitToUser(notif.userId.toString(), 'newNotification', notif)
+            })
+        } catch (notifError) {
+            console.error('Failed to create admin notifications:', notifError)
+        }
+
         res.status(201).json({
             success: true,
             message: 'Rental request created successfully',
@@ -135,6 +157,26 @@ export const updateRental = async (req: Request, res: Response, next: NextFuncti
                 message: 'Rental request not found',
             })
             return
+        }
+
+        // Notify user if status changed
+        if (req.body.status) {
+            try {
+                const userToNotify = await User.findOne({ email: rental.customerEmail })
+                if (userToNotify) {
+                    const notification = await Notification.create({
+                        title: `Your rental request status has been updated to ${rental.status}`,
+                        location: 'RentalRequest',
+                        locationId: rental._id,
+                        userId: userToNotify._id,
+                    })
+
+                    // Emit to user
+                    emitToUser(userToNotify._id.toString(), 'newNotification', notification)
+                }
+            } catch (notifError) {
+                console.error('Failed to create user notification:', notifError)
+            }
         }
 
         res.status(200).json({

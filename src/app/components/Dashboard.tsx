@@ -1,6 +1,7 @@
 import { CarsTab } from './CarsTab'
 import { RentalRequestsTab } from './RentalRequestsTab'
 import { UsersTab } from './UsersTab'
+import { NotificationPopover } from './NotificationPopover'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
 import { Button } from './ui/button'
 import { LogOut, User as UserIcon } from 'lucide-react'
@@ -9,6 +10,8 @@ import { useCars } from '../hooks/useCars'
 import { useRentals } from '../hooks/useRentals'
 import { useUsers } from '../hooks/useUsers'
 import { User } from '../../services/api'
+import { useEffect, useState } from 'react'
+import { initiateSocketConnection, disconnectSocket } from '../../services/socket'
 
 interface DashboardProps {
     user: User | null
@@ -16,9 +19,19 @@ interface DashboardProps {
 }
 
 export function Dashboard({ user, logout }: DashboardProps) {
+    const [activeTab, setActiveTab] = useState('cars')
     const { cars, isLoading: carsLoading, addCar, updateCar, deleteCar } = useCars()
     const { rentals, isLoading: rentalsLoading, addRental, updateRental, deleteRental } = useRentals()
-    const { users, isLoading: usersLoading } = useUsers()
+    const { users, isLoading: usersLoading } = useUsers(user?.role === 'admin')
+
+    useEffect(() => {
+        if (user?.id) {
+            initiateSocketConnection(user.id)
+        }
+        return () => {
+            disconnectSocket()
+        }
+    }, [user?.id])
 
     const handleAddCar = async (carData: any) => {
         await addCar(carData)
@@ -55,12 +68,12 @@ export function Dashboard({ user, logout }: DashboardProps) {
                     </div>
                     <div className='flex items-center gap-4'>
                         {user && (
-                            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-                                <UserIcon className='size-4' />
-                                <span>{user.username}</span>
+                            <div className='flex items-center gap-2 text-sm text-muted-foreground text-right'>
+                                <span className='font-medium text-foreground'>{user.username}</span>
                                 {user.role === 'admin' && <span className='px-2 py-1 bg-primary/10 text-primary rounded text-xs'>Admin</span>}
                             </div>
                         )}
+                        <NotificationPopover onNavigate={(tab: string) => setActiveTab(tab)} />
                         <Button variant='outline' onClick={logout}>
                             <LogOut className='size-4 mr-2' />
                             Logout
@@ -70,7 +83,7 @@ export function Dashboard({ user, logout }: DashboardProps) {
             </header>
 
             <main className='container mx-auto px-4 py-8'>
-                <Tabs defaultValue='cars' className='space-y-6'>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-6'>
                     <TabsList className={`grid w-full max-w-md ${user?.role === 'admin' ? 'grid-cols-3' : 'grid-cols-2'}`}>
                         <TabsTrigger value='cars'>Cars ({carsLoading ? '...' : cars.length})</TabsTrigger>
                         <TabsTrigger value='rentals'>Rental Requests ({rentalsLoading ? '...' : rentals.length})</TabsTrigger>

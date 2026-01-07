@@ -142,6 +142,40 @@ export const rentalsAPI = {
     },
 }
 
+// Notifications API
+export interface Notification {
+    _id: string
+    title: string
+    location: string
+    locationId: string
+    isOpened: boolean
+    userId: string
+    createdAt: string
+    updatedAt: string
+}
+
+export const notificationsAPI = {
+    getAll: async () => {
+        const response = await apiClient.get<ApiResponse<{ notifications: Notification[] }>>('/notifications')
+        return response.data
+    },
+
+    markAsRead: async (id: string) => {
+        const response = await apiClient.patch<ApiResponse<{ notification: Notification }>>(`/notifications/${id}/read`)
+        return response.data
+    },
+
+    delete: async (id: string) => {
+        const response = await apiClient.delete<ApiResponse<null>>(`/notifications/${id}`)
+        return response.data
+    },
+
+    deleteAll: async () => {
+        const response = await apiClient.delete<ApiResponse<null>>('/notifications')
+        return response.data
+    },
+}
+
 // Users API
 export const usersAPI = {
     getAll: async () => {

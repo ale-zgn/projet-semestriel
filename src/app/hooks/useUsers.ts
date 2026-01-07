@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { User, usersAPI } from '../../services/api'
 import { toast } from 'sonner'
 
-export function useUsers() {
+export function useUsers(enabled: boolean = true) {
     const [users, setUsers] = useState<User[]>([])
-    const [isLoading, setIsLoading] = useState(true)
+    const [isLoading, setIsLoading] = useState(enabled)
     const [error, setError] = useState<string | null>(null)
 
     const fetchUsers = useCallback(async () => {
@@ -24,8 +24,12 @@ export function useUsers() {
     }, [])
 
     useEffect(() => {
-        fetchUsers()
-    }, [fetchUsers])
+        if (enabled) {
+            fetchUsers()
+        } else {
+            setIsLoading(false)
+        }
+    }, [fetchUsers, enabled])
 
     return {
         users,
