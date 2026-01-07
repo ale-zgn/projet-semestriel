@@ -55,7 +55,7 @@ export const createRentalValidation: ValidationChain[] = [
 
 export const updateRentalValidation: ValidationChain[] = [
     param('id').isMongoId().withMessage('Invalid rental ID'),
-    body('status').optional().isIn(['pending', 'approved', 'completed', 'rejected']).withMessage('Invalid status'),
+    body('status').optional().isIn(['pending', 'approved', 'completed', 'rejected', 'cancelled']).withMessage('Invalid status'),
     body('notes').optional().trim(),
 ]
 

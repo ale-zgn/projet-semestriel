@@ -156,15 +156,21 @@ export function CarsTab({ cars, onAddCar, onUpdateCar, onDeleteCar, isLoading, i
 
                                             <DropdownMenuItem
                                                 onClick={async () => {
-                                                    setDeleteCarId(car._id)
+                                                    const targetCarId = car._id
+                                                    setDeleteCarId(targetCarId)
                                                     setIsCheckingRentals(true)
                                                     try {
-                                                        const response = await rentalsAPI.getAll({ carId: car._id })
+                                                        const response = await rentalsAPI.getAll({ carId: targetCarId })
                                                         if (response.success && response.data) {
-                                                            setRentalCount(response.data.count)
+                                                            const associatedRentals = response.data.rentals.filter((rental) => {
+                                                                const rentalCarId = typeof rental.carId === 'object' ? rental.carId._id : rental.carId
+                                                                return rentalCarId === targetCarId
+                                                            })
+                                                            setRentalCount(associatedRentals.length)
                                                         }
                                                     } catch (error) {
                                                         console.error('Failed to check rentals', error)
+                                                        setRentalCount(0)
                                                     } finally {
                                                         setIsCheckingRentals(false)
                                                     }

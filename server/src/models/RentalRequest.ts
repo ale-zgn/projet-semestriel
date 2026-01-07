@@ -7,7 +7,7 @@ export interface IRentalRequest extends Document {
     carId: mongoose.Types.ObjectId
     startDate: Date
     endDate: Date
-    status: 'pending' | 'approved' | 'completed' | 'rejected'
+    status: 'pending' | 'approved' | 'completed' | 'rejected' | 'cancelled'
     notes?: string
     totalCost: number
     createdAt: Date
@@ -48,7 +48,7 @@ const rentalRequestSchema = new Schema<IRentalRequest>(
         },
         status: {
             type: String,
-            enum: ['pending', 'approved', 'completed', 'rejected'],
+            enum: ['pending', 'approved', 'completed', 'rejected', 'cancelled'],
             default: 'pending',
         },
         notes: {
