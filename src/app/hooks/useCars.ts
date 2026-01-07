@@ -12,14 +12,11 @@ export function useCars() {
         try {
             setIsLoading(true)
             setError(null)
-            // Add cache buster
             const queryParams = { ...filters, _t: Date.now() }
             const response = await carsAPI.getAll(queryParams)
-            console.log('🔄 fetchCars response data (success):', !!response.data, 'count:', response.data?.count)
 
             if (response.success && response.data) {
                 setCars(response.data.cars)
-                console.log('✅ Updated cars state with', response.data.cars.length, 'items')
             }
         } catch (error: any) {
             const message = error.response?.data?.message || 'Failed to fetch cars'
@@ -35,8 +32,7 @@ export function useCars() {
     }, [fetchCars])
 
     useEffect(() => {
-        const unsubscribe = subscribeToEvent('carsUpdated', (data) => {
-            console.log('🏎️ useCars hook received carsUpdated event:', data)
+        const unsubscribe = subscribeToEvent('carsUpdated', () => {
             fetchCars()
         })
         return () => {

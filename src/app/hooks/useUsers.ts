@@ -34,8 +34,7 @@ export function useUsers(enabled: boolean = true) {
 
     useEffect(() => {
         if (!enabled) return
-        const unsubscribe = subscribeToEvent('usersUpdated', (data) => {
-            console.log('👥 useUsers hook received usersUpdated event:', data)
+        const unsubscribe = subscribeToEvent('usersUpdated', () => {
             fetchUsers()
         })
         return () => {

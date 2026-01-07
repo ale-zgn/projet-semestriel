@@ -12,14 +12,11 @@ export function useRentals() {
         try {
             setIsLoading(true)
             setError(null)
-            // Add cache buster
             const queryParams = { ...filters, _t: Date.now() }
             const response = await rentalsAPI.getAll(queryParams)
-            console.log('🔄 fetchRentals response data (success):', !!response.data, 'count:', response.data?.count)
 
             if (response.success && response.data) {
                 setRentals(response.data.rentals)
-                console.log('✅ Updated rentals state with', response.data.rentals.length, 'items')
             }
         } catch (error: any) {
             const message = error.response?.data?.message || 'Failed to fetch rentals'
@@ -35,8 +32,7 @@ export function useRentals() {
     }, [fetchRentals])
 
     useEffect(() => {
-        const unsubscribe = subscribeToEvent('rentalsUpdated', (data) => {
-            console.log('📋 useRentals hook received rentalsUpdated event:', data)
+        const unsubscribe = subscribeToEvent('rentalsUpdated', () => {
             fetchRentals()
         })
         return () => {

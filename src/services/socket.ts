@@ -10,8 +10,6 @@ export const socket: Socket = io(SOCKET_URL, {
 })
 
 export const initiateSocketConnection = (userId: string) => {
-    console.log(`Socket connecting to ${SOCKET_URL} for user ${userId}...`)
-
     if (!socket.connected) {
         socket.connect()
     }
@@ -19,16 +17,14 @@ export const initiateSocketConnection = (userId: string) => {
     // Handle connection events
     socket.off('connect')
     socket.on('connect', () => {
-        console.log('✅ Socket connected successfully:', socket.id)
         if (userId) {
-            console.log(`👤 Emitting join for user ${userId}`)
             socket.emit('join', userId)
         }
     })
 
     socket.off('connect_error')
     socket.on('connect_error', (error) => {
-        console.error('❌ Socket connection error:', error)
+        console.error('Socket connection error:', error)
     })
 
     // If already connected, emit join immediately
@@ -38,24 +34,19 @@ export const initiateSocketConnection = (userId: string) => {
 }
 
 export const disconnectSocket = () => {
-    console.log('🔌 Disconnecting socket...')
     socket.disconnect()
 }
 
 export const subscribeToNotifications = (cb: (data: any) => void) => {
-    console.log('🔌 Registering listener for: newNotification')
     socket.on('newNotification', cb)
     return () => {
-        console.log('🔌 Removing listener for: newNotification')
         socket.off('newNotification', cb)
     }
 }
 
 export const subscribeToEvent = (event: string, cb: (data: any) => void) => {
-    console.log(`🔌 Registering listener for: ${event}`)
     socket.on(event, cb)
     return () => {
-        console.log(`🔌 Removing listener for: ${event}`)
         socket.off(event, cb)
     }
 }

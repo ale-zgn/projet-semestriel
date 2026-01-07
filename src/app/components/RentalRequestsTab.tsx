@@ -57,15 +57,6 @@ export function RentalRequestsTab({ rentals, cars, onAddRental, onUpdateRental, 
         return matchesSearch && matchesStatus
     })
 
-    console.log('🖼️ RentalRequestsTab Render:', {
-        rentalsCount: rentals.length,
-        filteredCount: filteredRentals.length,
-        search: searchQuery,
-        status: statusFilter,
-        isAdmin,
-        userId: user?.id,
-    })
-
     const handleSave = async (rentalData: any) => {
         if (rentalData._id) {
             await onUpdateRental(rentalData)

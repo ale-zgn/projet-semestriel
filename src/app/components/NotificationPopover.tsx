@@ -33,7 +33,6 @@ export function NotificationPopover({ onNavigate }: NotificationPopoverProps) {
     }, [])
 
     useEffect(() => {
-        console.log('🔔 NotificationPopover mounted, fetching initial data...')
         fetchNotifications()
     }, [fetchNotifications])
 
@@ -44,15 +43,23 @@ export function NotificationPopover({ onNavigate }: NotificationPopoverProps) {
     }, [open, fetchNotifications])
 
     useEffect(() => {
-        console.log('Subscribing to notifications')
         const unsubscribe = subscribeToNotifications((newNotif: Notification) => {
-            console.log('New notification received:', newNotif)
             setNotifications((prev) => {
                 // Prevent duplicates
                 if (prev.find((n) => n._id === newNotif._id)) return prev
                 return [newNotif, ...prev]
             })
-            toast.info(newNotif.title)
+
+            // Enhanced toast for real-time notifications
+            toast(newNotif.title, {
+                description: 'Click to view details',
+                icon: getIcon(newNotif.location),
+                action: {
+                    label: 'View',
+                    onClick: () => handleNotificationClick(newNotif),
+                },
+                duration: 5000,
+            })
         })
         return () => {
             if (typeof unsubscribe === 'function') unsubscribe()

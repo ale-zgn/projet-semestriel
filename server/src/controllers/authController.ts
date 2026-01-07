@@ -59,7 +59,6 @@ export const register = async (req: Request, res: Response, next: NextFunction):
             // Emit to each admin
             savedNotifications.forEach((notif) => {
                 const targetId = notif.userId.toString()
-                console.log(`📡 Notifying admin room: ${targetId} of new user ${user.username} (Notif ID: ${notif._id})`)
                 emitToUser(targetId, 'newNotification', notif)
             })
         } catch (notifError) {
