@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Textarea } from './ui/textarea'
 import { RentalRequest, User as UserType } from '../../services/api'
 import { toast } from 'sonner'
+import { User } from 'lucide-react'
 
 interface RentalFormDialogProps {
     open: boolean
@@ -20,9 +21,6 @@ interface RentalFormDialogProps {
 
 export function RentalFormDialog({ open, onOpenChange, rental, onSave, availableCars, isAdmin, user }: RentalFormDialogProps) {
     const [formData, setFormData] = useState<Partial<RentalRequest>>({
-        customerName: '',
-        customerEmail: '',
-        customerPhone: '',
         carId: '',
         startDate: '',
         endDate: '',
@@ -34,9 +32,6 @@ export function RentalFormDialog({ open, onOpenChange, rental, onSave, available
     useEffect(() => {
         if (rental) {
             setFormData({
-                customerName: rental.customerName,
-                customerEmail: rental.customerEmail,
-                customerPhone: rental.customerPhone,
                 carId: typeof rental.carId === 'object' ? rental.carId._id : rental.carId,
                 startDate: rental.startDate ? new Date(rental.startDate).toISOString().split('T')[0] : '',
                 endDate: rental.endDate ? new Date(rental.endDate).toISOString().split('T')[0] : '',
@@ -46,9 +41,6 @@ export function RentalFormDialog({ open, onOpenChange, rental, onSave, available
             })
         } else {
             setFormData({
-                customerName: !isAdmin && user ? user.username : '',
-                customerEmail: !isAdmin && user ? user.email : '',
-                customerPhone: '',
                 carId: '',
                 startDate: '',
                 endDate: '',
@@ -69,7 +61,6 @@ export function RentalFormDialog({ open, onOpenChange, rental, onSave, available
             if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && car) {
                 const diffTime = Math.abs(end.getTime() - start.getTime())
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-                // Add 1 day if start and end are same day, or just to be inclusive
                 const days = diffDays === 0 ? 1 : diffDays + 1
 
                 if (days > 0) {
@@ -82,7 +73,6 @@ export function RentalFormDialog({ open, onOpenChange, rental, onSave, available
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
 
-        // Validation
         const today = new Date()
         today.setHours(0, 0, 0, 0)
         const start = new Date(formData.startDate!)
@@ -102,6 +92,8 @@ export function RentalFormDialog({ open, onOpenChange, rental, onSave, available
         onOpenChange(false)
     }
 
+    const displayedUser = rental && typeof rental.userId === 'object' ? rental.userId : user
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
@@ -111,41 +103,32 @@ export function RentalFormDialog({ open, onOpenChange, rental, onSave, available
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                     <div className='grid gap-4 py-4'>
-                        <div className='grid md:grid-cols-2 gap-4'>
-                            <div className='grid gap-2'>
-                                <Label htmlFor='customerName'>Customer Name</Label>
-                                <Input
-                                    id='customerName'
-                                    value={formData.customerName}
-                                    onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                                    required
-                                    disabled={!isAdmin}
-                                />
-                            </div>
-                            <div className='grid gap-2'>
-                                <Label htmlFor='customerEmail'>Email</Label>
-                                <Input
-                                    id='customerEmail'
-                                    type='email'
-                                    value={formData.customerEmail}
-                                    onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
-                                    required
-                                    disabled={!isAdmin}
-                                />
+                        <div className='bg-muted/50 p-4 rounded-lg space-y-2 mb-2 border border-border/50'>
+                            <p className='text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2'>
+                                <User className='size-3' />
+                                Customer Information
+                            </p>
+                            <div className='grid sm:grid-cols-2 gap-x-8 gap-y-1'>
+                                <div className='flex items-center gap-2 text-sm'>
+                                    <span className='font-semibold'>Name:</span>
+                                    <span>{displayedUser?.username || 'Guest'}</span>
+                                </div>
+                                <div className='flex items-center gap-2 text-sm'>
+                                    <span className='font-semibold'>Email:</span>
+                                    <span>{displayedUser?.email || '-'}</span>
+                                </div>
+                                <div className='flex items-center gap-2 text-sm'>
+                                    <span className='font-semibold'>Phone:</span>
+                                    <span>{displayedUser?.phone || '-'}</span>
+                                </div>
+                                <div className='flex items-center gap-2 text-sm text-primary/70'>
+                                    <span className='font-semibold'>Account:</span>
+                                    <span className='capitalize font-medium'>{displayedUser?.role || 'User'}</span>
+                                </div>
                             </div>
                         </div>
 
                         <div className='grid md:grid-cols-2 gap-4'>
-                            <div className='grid gap-2'>
-                                <Label htmlFor='customerPhone'>Phone</Label>
-                                <Input
-                                    id='customerPhone'
-                                    type='tel'
-                                    value={formData.customerPhone}
-                                    onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
-                                    required
-                                />
-                            </div>
                             <div className='grid gap-2'>
                                 <Label htmlFor='carId'>Select Car</Label>
                                 <Select
@@ -167,6 +150,17 @@ export function RentalFormDialog({ open, onOpenChange, rental, onSave, available
                                         ))}
                                     </SelectContent>
                                 </Select>
+                            </div>
+                            <div className='grid gap-2'>
+                                <Label htmlFor='totalCost'>Total Cost ($)</Label>
+                                <Input
+                                    id='totalCost'
+                                    type='number'
+                                    step='0.01'
+                                    value={formData.totalCost}
+                                    readOnly
+                                    className='bg-muted font-mono font-medium'
+                                />
                             </div>
                         </div>
 
@@ -193,7 +187,7 @@ export function RentalFormDialog({ open, onOpenChange, rental, onSave, available
                             </div>
                         </div>
 
-                        <div className='grid md:grid-cols-2 gap-4'>
+                        <div className='grid gap-4'>
                             {isAdmin && (
                                 <div className='grid gap-2'>
                                     <Label htmlFor='status'>Status</Label>
@@ -210,28 +204,26 @@ export function RentalFormDialog({ open, onOpenChange, rental, onSave, available
                                     </Select>
                                 </div>
                             )}
-                            <div className='grid gap-2'>
-                                <Label htmlFor='totalCost'>Total Cost ($)</Label>
-                                <Input id='totalCost' type='number' step='0.01' value={formData.totalCost} readOnly className='bg-muted' />
-                            </div>
-                        </div>
 
-                        <div className='grid gap-2'>
-                            <Label htmlFor='notes'>Notes</Label>
-                            <Textarea
-                                id='notes'
-                                value={formData.notes || ''}
-                                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                placeholder='Additional notes about this rental...'
-                                rows={3}
-                            />
+                            <div className='grid gap-2'>
+                                <Label htmlFor='notes'>Notes</Label>
+                                <Textarea
+                                    id='notes'
+                                    value={formData.notes || ''}
+                                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                    placeholder='Additional notes about this rental...'
+                                    rows={3}
+                                />
+                            </div>
                         </div>
                     </div>
                     <DialogFooter>
                         <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
                             Cancel
                         </Button>
-                        <Button type='submit'>{rental ? 'Update' : 'Create'} Request</Button>
+                        <Button type='submit' className='min-w-[120px]'>
+                            {rental ? 'Update' : 'Create'} Request
+                        </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

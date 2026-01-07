@@ -127,28 +127,59 @@ export const updateRental = async (req: Request, res: Response, next: NextFuncti
         }
 
         const { id } = req.params
-        const { startDate, endDate } = req.body
+        const user = req.user
+        const { startDate, endDate, status } = req.body
 
-        // Validate dates if either is provided
-        if (startDate || endDate) {
-            let start = startDate ? new Date(startDate) : null
-            let end = endDate ? new Date(endDate) : null
+        // Fetch existing rental to check permissions
+        const existingRental = await RentalRequest.findById(id)
+        if (!existingRental) {
+            res.status(404).json({
+                success: false,
+                message: 'Rental request not found',
+            })
+            return
+        }
 
-            // If only one date is provided, we need to fetch the other from DB
-            if (!start || !end) {
-                const existingRental = await RentalRequest.findById(id)
-                if (!existingRental) {
-                    res.status(404).json({
-                        success: false,
-                        message: 'Rental request not found',
-                    })
-                    return
-                }
-                if (!start) start = new Date(existingRental.startDate)
-                if (!end) end = new Date(existingRental.endDate)
+        // Permission check for non-admins
+        if (user && user.role !== 'admin') {
+            // 1. Check ownership
+            if (existingRental.customerEmail !== user.email) {
+                res.status(403).json({
+                    success: false,
+                    message: 'You can only update your own rental requests',
+                })
+                return
             }
 
-            if (end! <= start!) {
+            // 2. Check update allowed fields (only status) and value (only cancelled)
+            const updateFields = Object.keys(req.body).filter((key) => key !== '_id' && key !== 'id')
+            const isOnlyStatusUpdate = updateFields.length === 1 && updateFields[0] === 'status'
+            const isStatusCancelled = status === 'cancelled'
+
+            if (!isOnlyStatusUpdate || !isStatusCancelled) {
+                res.status(403).json({
+                    success: false,
+                    message: 'Users can only update the status of their rental requests to cancelled',
+                })
+                return
+            }
+
+            // 3. Check current status allows cancellation
+            if (existingRental.status !== 'pending' && existingRental.status !== 'approved') {
+                res.status(400).json({
+                    success: false,
+                    message: `Cannot cancel a rental that is already ${existingRental.status}`,
+                })
+                return
+            }
+        }
+
+        // Validate dates if either is provided (usually only by admin)
+        if (startDate || endDate) {
+            let start = startDate ? new Date(startDate) : new Date(existingRental.startDate)
+            let end = endDate ? new Date(endDate) : new Date(existingRental.endDate)
+
+            if (end <= start) {
                 res.status(400).json({
                     success: false,
                     message: 'End date must be after start date',
@@ -170,13 +201,13 @@ export const updateRental = async (req: Request, res: Response, next: NextFuncti
             return
         }
 
-        // Notify user if status changed
+        // Notify relevant parties if status changed
         if (req.body.status) {
             try {
                 // Find user to notify
                 const userToNotify = rental.userId as any
 
-                if (userToNotify && userToNotify._id) {
+                if (userToNotify && userToNotify._id.toString() !== req.user?.userId) {
                     const notification = await Notification.create({
                         title: `Your rental request status has been updated to ${rental.status}`,
                         location: 'RentalRequest',
@@ -188,8 +219,26 @@ export const updateRental = async (req: Request, res: Response, next: NextFuncti
                     const targetId = userToNotify._id.toString()
                     emitToUser(targetId, 'newNotification', notification)
                 }
+
+                // If cancelled by user, notify admins
+                if (rental.status === 'cancelled') {
+                    const admins = await User.find({ role: 'admin' })
+                    const adminNotifications = admins.map((admin) => ({
+                        title: `Rental request from ${rental.customerName} has been cancelled`,
+                        location: 'RentalRequest',
+                        locationId: rental._id,
+                        userId: admin._id,
+                    }))
+                    const savedAdminNotifs = await Notification.insertMany(adminNotifications)
+
+                    // Emit to each admin
+                    savedAdminNotifs.forEach((notif) => {
+                        const targetId = notif.userId.toString()
+                        emitToUser(targetId, 'newNotification', notif)
+                    })
+                }
             } catch (notifError) {
-                console.error('Failed to create user notification:', notifError)
+                console.error('Failed to create status update notification:', notifError)
             }
         }
 

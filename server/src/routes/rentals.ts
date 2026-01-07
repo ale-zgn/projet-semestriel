@@ -25,7 +25,7 @@ router.post('/', authenticate, createRentalValidation, createRental)
  * @desc    Update a rental request (change status)
  * @access  Admin only
  */
-router.put('/:id', authenticate, requireAdmin, updateRentalValidation, updateRental)
+router.put('/:id', authenticate, updateRentalValidation, updateRental)
 
 /**
  * @route   DELETE /api/rentals/:id

@@ -89,6 +89,8 @@ export function RentalRequestsTab({ rentals, cars, onAddRental, onUpdateRental, 
                 return 'bg-red-500/10 text-red-500 border-red-500/20'
             case 'completed':
                 return 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+            case 'cancelled':
+                return 'bg-gray-500/10 text-gray-500 border-gray-500/20'
             default:
                 return ''
         }
@@ -148,6 +150,7 @@ export function RentalRequestsTab({ rentals, cars, onAddRental, onUpdateRental, 
                         <SelectItem value='approved'>Approved</SelectItem>
                         <SelectItem value='rejected'>Rejected</SelectItem>
                         <SelectItem value='completed'>Completed</SelectItem>
+                        <SelectItem value='cancelled'>Cancelled</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -163,7 +166,7 @@ export function RentalRequestsTab({ rentals, cars, onAddRental, onUpdateRental, 
                                         <CardTitle>{typeof rental.userId === 'object' ? rental.userId.username : 'Unknown User'}</CardTitle>
                                         <CardDescription>{car ? `${car.make} ${car.carModel}` : 'Unknown Car'}</CardDescription>
                                     </div>
-                                    {isAdmin && (
+                                    {isAdmin ? (
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button variant='ghost' size='sm'>
@@ -177,6 +180,24 @@ export function RentalRequestsTab({ rentals, cars, onAddRental, onUpdateRental, 
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
+                                    ) : (
+                                        rental.customerEmail === user?.email &&
+                                        (rental.status === 'pending' || rental.status === 'approved') && (
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant='ghost' size='sm'>
+                                                        <MoreVertical className='size-4' />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align='end'>
+                                                    <DropdownMenuItem
+                                                        onClick={() => onUpdateRental({ _id: rental._id, status: 'cancelled' })}
+                                                        className='text-destructive'>
+                                                        Cancel Request
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        )
                                     )}
                                 </div>
                             </CardHeader>

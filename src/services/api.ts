@@ -68,7 +68,7 @@ export interface RentalRequest {
     carId: Car | string
     startDate: string
     endDate: string
-    status: 'pending' | 'approved' | 'completed' | 'rejected'
+    status: 'pending' | 'approved' | 'completed' | 'rejected' | 'cancelled'
     notes?: string
     totalCost: number
     createdAt: string
