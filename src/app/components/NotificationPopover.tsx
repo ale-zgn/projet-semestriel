@@ -33,6 +33,7 @@ export function NotificationPopover({ onNavigate }: NotificationPopoverProps) {
     }, [])
 
     useEffect(() => {
+        console.log('🔔 NotificationPopover mounted, fetching initial data...')
         fetchNotifications()
     }, [fetchNotifications])
 

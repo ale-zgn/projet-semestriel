@@ -12,10 +12,14 @@ export function useCars() {
         try {
             setIsLoading(true)
             setError(null)
-            const response = await carsAPI.getAll(filters)
+            // Add cache buster
+            const queryParams = { ...filters, _t: Date.now() }
+            const response = await carsAPI.getAll(queryParams)
+            console.log('🔄 fetchCars response data (success):', !!response.data, 'count:', response.data?.count)
 
             if (response.success && response.data) {
                 setCars(response.data.cars)
+                console.log('✅ Updated cars state with', response.data.cars.length, 'items')
             }
         } catch (error: any) {
             const message = error.response?.data?.message || 'Failed to fetch cars'
