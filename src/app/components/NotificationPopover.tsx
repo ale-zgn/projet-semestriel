@@ -33,6 +33,10 @@ export function NotificationPopover({ onNavigate }: NotificationPopoverProps) {
     }, [])
 
     useEffect(() => {
+        fetchNotifications()
+    }, [fetchNotifications])
+
+    useEffect(() => {
         if (open) {
             fetchNotifications()
         }
@@ -40,7 +44,11 @@ export function NotificationPopover({ onNavigate }: NotificationPopoverProps) {
 
     useEffect(() => {
         const unsubscribe = subscribeToNotifications((newNotif: Notification) => {
-            setNotifications((prev) => [newNotif, ...prev])
+            setNotifications((prev) => {
+                // Prevent duplicates
+                if (prev.find((n) => n._id === newNotif._id)) return prev
+                return [newNotif, ...prev]
+            })
             toast.info(newNotif.title)
         })
         return () => {
