@@ -86,7 +86,9 @@ export const createRental = async (req: Request, res: Response, next: NextFuncti
 
             // Emit to each admin
             notifications.forEach((notif) => {
-                emitToUser(notif.userId.toString(), 'newNotification', notif)
+                const targetId = notif.userId.toString()
+                console.log(`📡 Notifying admin room: ${targetId} of new rental ${rental._id}`)
+                emitToUser(targetId, 'newNotification', notif)
             })
         } catch (notifError) {
             console.error('Failed to create admin notifications:', notifError)
@@ -175,7 +177,11 @@ export const updateRental = async (req: Request, res: Response, next: NextFuncti
                     })
 
                     // Emit to user
-                    emitToUser(userToNotify._id.toString(), 'newNotification', notification)
+                    const targetId = userToNotify._id.toString()
+                    console.log(`📡 Notifying user room: ${targetId} of status update for ${rental._id}`)
+                    emitToUser(targetId, 'newNotification', notification)
+                } else {
+                    console.log(`ℹ️ No user matching email ${rental.customerEmail} found to notify.`)
                 }
             } catch (notifError) {
                 console.error('Failed to create user notification:', notifError)

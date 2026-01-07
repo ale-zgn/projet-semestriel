@@ -15,13 +15,14 @@ export const initSocket = (server: HTTPServer) => {
     io.on('connection', (socket: Socket) => {
         console.log('User connected:', socket.id)
 
-        socket.on('join', (userId: string) => {
-            console.log(`User ${userId} joined their room`)
-            socket.join(userId)
+        socket.on('join', async (userId: any) => {
+            const userIdStr = String(userId)
+            await socket.join(userIdStr)
+            console.log(`👤 User ${userIdStr} joined room. Active rooms:`, Array.from(socket.rooms))
 
-            // Track socket IDs for private messaging if needed
-            const currentSockets = userSockets.get(userId) || []
-            userSockets.set(userId, [...currentSockets, socket.id])
+            // Track socket IDs
+            const currentSockets = userSockets.get(userIdStr) || []
+            userSockets.set(userIdStr, [...currentSockets, socket.id])
         })
 
         socket.on('disconnect', () => {
@@ -51,10 +52,11 @@ export const getIO = () => {
     return io
 }
 
-export const emitToUser = (userId: string, event: string, data: any) => {
+export const emitToUser = (userId: any, event: string, data: any) => {
     if (io) {
-        console.log(`📡 Emitting ${event} to user ${userId}`)
-        io.to(userId).emit(event, data)
+        const userIdStr = String(userId)
+        console.log(`📡 Emitting ${event} to user room: ${userIdStr}`)
+        io.to(userIdStr).emit(event, data)
     } else {
         console.warn(`⚠️ Cannot emit ${event} to user ${userId}: Socket.io not initialized`)
     }
