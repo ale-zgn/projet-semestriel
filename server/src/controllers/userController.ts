@@ -8,9 +8,11 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction):
 
         const usersWithRentals = await Promise.all(
             users.map(async (user) => {
-                const rentalCount = await RentalRequest.countDocuments({ customerEmail: user.email })
+                const rentalCount = await RentalRequest.countDocuments({ userId: user._id })
+                const userObj = user.toObject()
                 return {
-                    ...user.toObject(),
+                    ...userObj,
+                    id: userObj._id.toString(),
                     rentalCount,
                 }
             })

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Input } from './ui/input'
+import { Button } from './ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 import { Badge } from './ui/badge'
 import { Search, Loader2, User as UserIcon, Mail, Calendar } from 'lucide-react'
@@ -9,9 +10,10 @@ import { User } from '../../services/api'
 interface UsersTabProps {
     users: User[]
     isLoading: boolean
+    onUserRentalClick?: (userId: string) => void
 }
 
-export function UsersTab({ users, isLoading }: UsersTabProps) {
+export function UsersTab({ users, isLoading, onUserRentalClick }: UsersTabProps) {
     const [searchQuery, setSearchQuery] = useState('')
 
     const filteredUsers = users.filter(
@@ -92,7 +94,15 @@ export function UsersTab({ users, isLoading }: UsersTabProps) {
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <Badge variant='outline'>{user.rentalCount || 0}</Badge>
+                                                <Button
+                                                    variant='ghost'
+                                                    size='sm'
+                                                    className='p-0 h-auto hover:bg-transparent'
+                                                    onClick={() => onUserRentalClick?.(user._id)}>
+                                                    <Badge variant='outline' className='cursor-pointer hover:bg-primary/10 transition-colors'>
+                                                        {user.rentalCount || 0}
+                                                    </Badge>
+                                                </Button>
                                             </TableCell>
                                             <TableCell>
                                                 <div className='flex items-center gap-2 text-muted-foreground'>

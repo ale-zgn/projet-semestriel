@@ -19,6 +19,7 @@ interface DashboardProps {
 
 export function Dashboard({ user, logout }: DashboardProps) {
     const [activeTab, setActiveTab] = useState('cars')
+    const [rentalFilters, setRentalFilters] = useState<{ userId?: string }>({})
     const { cars, isLoading: carsLoading, addCar, updateCar, deleteCar } = useCars()
     const { rentals, isLoading: rentalsLoading, addRental, updateRental, deleteRental } = useRentals()
     const { users, isLoading: usersLoading } = useUsers(user?.role === 'admin')
@@ -56,6 +57,15 @@ export function Dashboard({ user, logout }: DashboardProps) {
         await deleteRental(id)
     }
 
+    const handleUserRentalClick = (userId: string) => {
+        setRentalFilters({ userId })
+        setActiveTab('rentals')
+    }
+
+    const handleClearRentalFilters = () => {
+        setRentalFilters({})
+    }
+
     return (
         <div className='min-h-screen bg-background'>
             <header className='border-b border-border bg-card'>
@@ -81,7 +91,15 @@ export function Dashboard({ user, logout }: DashboardProps) {
             </header>
 
             <main className='container mx-auto px-4 py-8'>
-                <Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-6'>
+                <Tabs
+                    value={activeTab}
+                    onValueChange={(value) => {
+                        setActiveTab(value)
+                        if (value !== 'rentals') {
+                            setRentalFilters({})
+                        }
+                    }}
+                    className='space-y-6'>
                     <TabsList className={`grid w-full max-w-md ${user?.role === 'admin' ? 'grid-cols-3' : 'grid-cols-2'}`}>
                         <TabsTrigger value='cars'>Cars ({carsLoading ? '...' : cars.length})</TabsTrigger>
                         <TabsTrigger value='rentals'>Rental Requests ({rentalsLoading ? '...' : rentals.length})</TabsTrigger>
@@ -109,12 +127,15 @@ export function Dashboard({ user, logout }: DashboardProps) {
                             isLoading={rentalsLoading}
                             isAdmin={user?.role === 'admin'}
                             user={user}
+                            users={users}
+                            initialFilters={rentalFilters}
+                            onClearInitialFilters={handleClearRentalFilters}
                         />
                     </TabsContent>
 
                     {user?.role === 'admin' && (
                         <TabsContent value='users' className='space-y-4'>
-                            <UsersTab users={users} isLoading={usersLoading} />
+                            <UsersTab users={users} isLoading={usersLoading} onUserRentalClick={handleUserRentalClick} />
                         </TabsContent>
                     )}
                 </Tabs>

@@ -56,17 +56,17 @@ export const createRental = async (req: Request, res: Response, next: NextFuncti
             })
             return
         }
-        // Check for overlapping rentals
+        // Check for overlapping rentals (approved or pending)
         const overlappingRental = await RentalRequest.findOne({
             carId: req.body.carId,
-            status: 'approved',
+            status: { $in: ['approved', 'pending'] },
             $or: [{ startDate: { $lte: new Date(endDate) }, endDate: { $gte: new Date(startDate) } }],
         })
 
         if (overlappingRental) {
             res.status(400).json({
                 success: false,
-                message: 'Car is already rented for this period',
+                message: overlappingRental.status === 'approved' ? 'Car is already rented for this period' : 'Car has a pending request for this period',
             })
             return
         }
@@ -174,10 +174,10 @@ export const updateRental = async (req: Request, res: Response, next: NextFuncti
             }
         }
 
-        // Validate dates if either is provided (usually only by admin)
-        if (startDate || endDate) {
-            let start = startDate ? new Date(startDate) : new Date(existingRental.startDate)
-            let end = endDate ? new Date(endDate) : new Date(existingRental.endDate)
+        // Validate dates and check for overlaps if provided
+        if (startDate || endDate || (status && ['approved', 'pending'].includes(status))) {
+            const start = startDate ? new Date(startDate) : new Date(existingRental.startDate)
+            const end = endDate ? new Date(endDate) : new Date(existingRental.endDate)
 
             if (end <= start) {
                 res.status(400).json({
@@ -185,6 +185,27 @@ export const updateRental = async (req: Request, res: Response, next: NextFuncti
                     message: 'End date must be after start date',
                 })
                 return
+            }
+
+            // Check for overlapping rentals (excluding current one)
+            // Use the target status if status is changing, otherwise use current status
+            const targetStatus = status || existingRental.status
+            if (['approved', 'pending'].includes(targetStatus)) {
+                const overlappingRental = await RentalRequest.findOne({
+                    _id: { $ne: id },
+                    carId: req.body.carId || existingRental.carId,
+                    status: { $in: ['approved', 'pending'] },
+                    $or: [{ startDate: { $lte: end }, endDate: { $gte: start } }],
+                })
+
+                if (overlappingRental) {
+                    res.status(400).json({
+                        success: false,
+                        message:
+                            overlappingRental.status === 'approved' ? 'Car is already rented for this period' : 'Car has a pending request for this period',
+                    })
+                    return
+                }
             }
         }
 
