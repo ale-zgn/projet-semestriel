@@ -1,7 +1,8 @@
 import mongoose, { Document, Schema } from 'mongoose'
+import { IUser } from './User'
 
 export interface IRentalRequest extends Document {
-    userId: mongoose.Types.ObjectId
+    userId: mongoose.Types.ObjectId | IUser
     carId: mongoose.Types.ObjectId
     startDate: Date
     endDate: Date

@@ -14,9 +14,9 @@ export const getRentals = async (req: Request, res: Response, next: NextFunction
         const filter: any = {}
         if (status) filter.status = status
 
-        // If user is not admin, only show their rentals (by userId if available, or by email)
+        // If user is not admin, only show their rentals by userId
         if (user && user.role !== 'admin') {
-            filter.$or = [{ userId: user.userId }, { customerEmail: user.email }]
+            filter.userId = user.userId
         }
 
         const rentals = await RentalRequest.find(filter).populate('carId').populate('userId', 'username email phone').sort({ createdAt: -1 })
@@ -82,7 +82,7 @@ export const createRental = async (req: Request, res: Response, next: NextFuncti
         // Notify admins
         try {
             const admins = await User.find({ role: 'admin' })
-            const customerName = (rental.userId as any)?.username || 'Unknown Customer'
+            const customerName = rental.userId && 'username' in rental.userId ? rental.userId.username : 'Unknown Customer'
             const notifications = admins.map((admin) => ({
                 title: `New rental request from ${customerName}`,
                 location: 'RentalRequest',
@@ -143,7 +143,7 @@ export const updateRental = async (req: Request, res: Response, next: NextFuncti
         // Permission check for non-admins
         if (user && user.role !== 'admin') {
             // 1. Check ownership
-            if (existingRental.customerEmail !== user.email) {
+            if (existingRental.userId?.toString() !== user.userId) {
                 res.status(403).json({
                     success: false,
                     message: 'You can only update your own rental requests',
@@ -205,7 +205,7 @@ export const updateRental = async (req: Request, res: Response, next: NextFuncti
         if (req.body.status) {
             try {
                 // Find user to notify
-                const userToNotify = rental.userId as any
+                const userToNotify = rental.userId && 'email' in rental.userId ? rental.userId : null
 
                 if (userToNotify && userToNotify._id.toString() !== req.user?.userId) {
                     const notification = await Notification.create({
@@ -223,8 +223,9 @@ export const updateRental = async (req: Request, res: Response, next: NextFuncti
                 // If cancelled by user, notify admins
                 if (rental.status === 'cancelled') {
                     const admins = await User.find({ role: 'admin' })
+                    const customerName = rental.userId && 'username' in rental.userId ? rental.userId.username : 'Unknown Customer'
                     const adminNotifications = admins.map((admin) => ({
-                        title: `Rental request from ${rental.customerName} has been cancelled`,
+                        title: `Rental request from ${customerName} has been cancelled`,
                         location: 'RentalRequest',
                         locationId: rental._id,
                         userId: admin._id,

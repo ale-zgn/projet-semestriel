@@ -92,7 +92,7 @@ export function RentalFormDialog({ open, onOpenChange, rental, onSave, available
         onOpenChange(false)
     }
 
-    const displayedUser = rental && typeof rental.userId === 'object' ? rental.userId : user
+    const displayedUser = rental && rental.userId && typeof rental.userId === 'object' ? rental.userId : user
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
